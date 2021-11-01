@@ -17,9 +17,7 @@ require(stringr)
 
 # In class Exercises
 
-##
-
-# Blank map with provider selector
+## Blank map with provider selector
 
 ```{r, controls}
 
@@ -33,11 +31,9 @@ op_data <- read_excel("Geographies_of_Opportunity_Ranking_Well_Being_by_Congress
 
 cds.load <- readOGR("./cb_2015_us_cd114_500k/cb_2015_us_cd114_500k.shp", layer = "cb_2015_us_cd114_500k", GDAL1_integer64_policy = TRUE)
 
-# Just having the matching GEOID's
-cds <- cds.load[cds.load$GEOID %in% op_data$Number,]
-
-cds@data <- merge(cds@data, op_data, sort = FALSE, by.x = "GEOID", by.y = "Number")
-
+# Merge with Left Join
+cds <- cds.load %>%
+  left_join(op_data, by = c("GEOID" = "Number"))
 
 ```
 

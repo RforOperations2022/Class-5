@@ -7,7 +7,7 @@ output: html_document
 
 
 ```{r setup, include=FALSE}
-require(rgdal)
+require(sf)
 require(leaflet)
 require(leaflet.extras)
 
@@ -19,10 +19,10 @@ require(stringr)
 # Getting Spatial Data
 
 ```{r, loading}
-cds.load <- readOGR("./cb_2015_us_cd114_500k/cb_2015_us_cd114_500k.shp", layer = "cb_2015_us_cd114_500k", GDAL1_integer64_policy = TRUE)
+cds.load <- st_read("./cb_2015_us_cd114_500k/cb_2015_us_cd114_500k.shp")
 plot(cds.load)
 
-polls <- readOGR("Allegheny_County_Polling_Place_Locations_November_2016.geojson")
+polls <- st_read("Allegheny_County_Polling_Place_Locations_November_2016.geojson")
 plot(polls)
 ```
 
@@ -32,10 +32,9 @@ plot(polls)
 op_data <- read_excel("Geographies_of_Opportunity_Ranking_Well_Being_by_Congressional_District_(114th_Congress).xlsx") %>%
   mutate(Number = str_pad(Number, 4, pad = "0"))
 
-# Just having the matching GEOID's
-cds <- cds.load[cds.load$GEOID %in% op_data$Number,]
-
-cds@data <- merge(cds@data, op_data, sort = FALSE, by.x = "GEOID", by.y = "Number")
+# Merge with Left Join
+cds <- cds.load %>%
+  left_join(op_data, by = c("GEOID" = "Number"))
 ```
 
 # Blank map with basemap
@@ -61,7 +60,7 @@ leaflet() %>%
 # Lines
 
 ```{r, lines}
-rivers <- readOGR("./ne_10m_rivers_lake_centerlines")
+rivers <- st_read("./ne_10m_rivers_lake_centerlines")
 
 leaflet(data = rivers) %>%
   addProviderTiles("Esri.WorldTerrain", options = providerTileOptions(noWrap = TRUE)) %>%
@@ -71,7 +70,7 @@ leaflet(data = rivers) %>%
 # Line with Popups
 
 ```{r, popups}
-rivers <- readOGR("./ne_10m_rivers_lake_centerlines")
+rivers <- st_read("./ne_10m_rivers_lake_centerlines")
 plot(rivers)
 
 leaflet(data = rivers) %>%
